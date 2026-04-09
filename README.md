@@ -1,118 +1,139 @@
-# SAT0RUEnhanced
-# 呪術廻戦 — JJK: Cursed Technique
 
-> A real-time hand gesture-driven cursed energy visualizer built with Three.js + MediaPipe Hands.
+# 呪術廻戦 — JJK: Cursed Technique Visualizer
+
+<div align="center">
+
+![JJK Banner](https://media.tenor.com/PcTVZK3aROQAAAAi/albanie.gif)
+
+**A real-time hand gesture particle visualizer inspired by Jujutsu Kaisen**  
+*Point your hand at the webcam. Activate cursed techniques.*
+
+[![Original](https://img.shields.io/badge/Original-reinesana-ff3333?style=flat-square)](https://github.com/reinesana/SAT0RU)
+[![Enhanced](https://img.shields.io/badge/Enhanced-shizuadev-00ffff?style=flat-square)](https://github.com/reinesana)
+[![License](https://img.shields.io/badge/License-Fan%20Project-bb00ff?style=flat-square)](#license)
+
+</div>
 
 ---
 
 ## Credits
 
-| Role | Author |
+| | |
 |---|---|
 | **Original Creator** | [reinesana](https://github.com/reinesana) |
 | **Original Repository** | [github.com/reinesana/SAT0RU](https://github.com/reinesana/SAT0RU) |
-| **Enhanced By** | shizuadev |
+| **Enhanced By** | **shizuadev** |
 
 ---
 
 ## Overview
 
-This project uses your webcam and MediaPipe's real-time hand tracking to detect specific finger positions, then triggers particle-based visual effects inspired by the cursed techniques from *Jujutsu Kaisen*. Each technique has a unique particle formation, rotation behavior, bloom intensity, and color palette — all rendered in WebGL via Three.js with post-processing bloom.
+Uses your webcam + MediaPipe Hands to detect finger gestures in real-time and trigger Three.js particle effects inspired by cursed techniques from *Jujutsu Kaisen*. Each technique has unique particle geometry, rotation behavior, bloom intensity, and color. Everything runs fully in-browser — no install, no server.
 
 ---
 
-## Features
+## Quick Start
 
-- **13 unique cursed techniques** — each with distinct particle geometry, color, and motion
-- **Real-time hand gesture detection** via MediaPipe Hands (no server needed, runs fully in-browser)
-- **Adaptive performance mode** — auto-detects low-end hardware, cuts particle count and resolution accordingly
-- **Gesture debouncing** — prevents flickering by requiring 5 consistent frames before switching techniques
-- **Cursed Energy bar** — visual output meter per technique
-- **Fully mirrored camera** — natural mirror-view for the user
-- **No dependencies to install** — single HTML file, loads everything from CDN
-
----
-
-## Hand Signs Reference
-
-| Gesture | Technique | Color |
-|---|---|---|
-| Index finger only | Reverse CT: **Red** | 🔴 `#ff3333` |
-| Index + Middle | Cursed Technique: **Blue** | 🔵 `#4488ff` |
-| Pinch (index + thumb) | Secret Technique: **Hollow Purple** | 🟣 `#cc44ff` |
-| All 4 fingers up | Domain Expansion: **Malevolent Shrine** | 🔴 `#ff2200` |
-| Closed fist | Domain Expansion: **Infinite Void** | 🩵 `#aaddff` |
-| Rock sign (index + pinky) | Cursed Tool: **Dragon Bone Katana** | 🟢 `#00ff88` |
-| Thumb only | Ten Shadows: **Divergence Burst** | 🟠 `#ffaa00` |
-| Index + Middle + Ring | Reverse CT: **Cursed Flower** | 🩷 `#ff69b4` |
-| Spread all (wide) | Unlimited: **Star Rage** | ⚪ `#ffffff` |
-| Middle + Ring only | Convergence: **Supernova Blood Pond** | 🟡 `#ffccaa` |
-| Index + Ring only | Projection Sorcery: **Ratio Technique** | 🩵 `#00ffdd` |
-| Index + Middle + Pinky | Maximum: **Meteor Furnace** | 🟠 `#ff6600` |
-
----
-
-## Technical Stack
-
-| Library | Version | Purpose |
-|---|---|---|
-| [Three.js](https://threejs.org) | r160 | WebGL rendering, particle system |
-| [MediaPipe Hands](https://mediapipe.dev) | Latest | Real-time hand landmark detection |
-| UnrealBloomPass | (Three addons) | Post-processing glow / bloom |
-| MediaPipe Camera Utils | Latest | Webcam stream management |
-
----
-
-## How It Works
-
-### Particle System
-
-Each technique precomputes `COUNT` particle target positions (`tp[]`), colors (`tc[]`), and sizes (`ts[]`) into typed arrays. Every animation frame, the live particle arrays lerp toward their targets:
-
-```js
-pos[i] += (tp[i] - pos[i]) * LERP;
-```
-
-This gives the smooth "formation" transition between techniques without any physics engine.
-
-### Gesture Detection
-
-MediaPipe returns 21 hand landmarks per hand. Finger state is determined by comparing tip Y position to the proximal knuckle:
-
-```js
-const isUp = (tip, base) => landmark[tip].y < landmark[base].y;
-```
-
-Pinch is measured as Euclidean distance between index tip and thumb tip.
-
-### Adaptive Performance
-
-On load, hardware concurrency and user agent are checked:
-
-```js
-const isLowEnd = navigator.hardwareConcurrency <= 4 || isMobile;
-const COUNT = isLowEnd ? 5000 : 12000;
-```
-
-Pixel ratio is also capped at 1.5x and MediaPipe model complexity drops to 0 on low-end devices.
-
----
-
-## Running Locally
-
-No build step needed. Just open the HTML file in a browser:
+No build step needed. Just open and run:
 
 ```bash
-# Option 1: Direct open (may have camera permission issues on some browsers)
-open jjk_cursed_technique.html
-
-# Option 2: Serve locally (recommended)
+# Recommended: serve locally (camera needs localhost or HTTPS)
 npx serve .
 # or
 python -m http.server 8080
 ```
 
-Camera access requires HTTPS or localhost. Use a local server if opening directly doesn't trigger camera permission.
+Then open `http://localhost:8080/jjk_cursed_technique.html` in Chrome or Edge.
+
+> **Note:** Direct file:// open may block camera access. Use a local server.
+
+---
+
+## All 19 Techniques
+
+| Technique | Character | Gesture | Power |
+|---|---|---|---|
+| Reverse CT: Red | Gojo Satoru | Index finger only | 55% |
+| Cursed Technique: Blue | Gojo Satoru | Index + Middle | 55% |
+| Hollow Purple | Gojo Satoru | Pinch (index + thumb) | 95% |
+| Domain: Infinite Void | Gojo Satoru | Relaxed closed fist | 80% |
+| Infinity: Limitless | Gojo Satoru | Thumb only extended | 75% |
+| Unlimited: Star Rage | Gojo Satoru | All 5 fingers spread | **100%** |
+| Domain: Malevolent Shrine | Ryomen Sukuna | 4 fingers up (no thumb) | 90% |
+| Sukuna CT: Dismantle | Ryomen Sukuna | Index + Middle + Pinky | 70% |
+| Sukuna CT: Cleave | Ryomen Sukuna | Tight closed fist | 75% |
+| Projection Sorcery | Nanami Kento | Index + Ring fingers | 45% |
+| Straw Doll: Hairpin | Nobara Kugisaki | Ring finger only | 65% |
+| Blood Pond Convergence | Choso | Middle + Ring fingers | 72% |
+| Piercing Blood | Choso | Thumb + Index + Middle | 78% |
+| Cursed Speech: Fallen | Toge Inumaki | Middle finger only | 68% |
+| Rika: Spirit Manifestation | Yuta Okkotsu | Thumb + Index + Middle + Pinky | 92% |
+| Maximum: Meteor Furnace | Jogo | Index + Middle + Pinky | 85% |
+| Ten Shadows: Divergence | Megumi Fushiguro | Thumb half-extended | 65% |
+| Cursed Tool: Dragon Bone | Tool User | Index + Pinky (rock sign) | 50% |
+| Reverse CT: Cursed Flower | Shoko Ieiri | Index + Middle + Ring | 60% |
+
+> **See `JJK_HandSign_Guide.pdf` for illustrated hand diagrams of every gesture.**
+
+---
+
+## How Gesture Detection Works
+
+The detection system was rebuilt from the ground up for stability:
+
+**Landmark smoothing** — raw MediaPipe landmarks are lerped between frames (α = 0.55) to eliminate hand jitter from causing false positives.
+
+**Confidence scoring** — each finger gets a 0–1 confidence value based on PIP joint vs fingertip Y-delta, rather than binary up/down comparisons. The thumb uses X-axis lateral extension instead of Y.
+
+**Voting buffer** — the last 8 frames are stored and weighted by confidence. A majority vote over the buffer determines the current gesture rather than reacting to single frames.
+
+**Hysteresis** — switching *to* a new technique requires 5 consistent votes. Switching *back* to neutral requires 10 consecutive neutral frames. This prevents flicker when transitioning between gestures.
+
+```
+Raw landmarks → Lerp smoother → Per-finger confidence (0..1) → Classifier 
+  → 8-frame history → Weighted vote → Hysteresis → activateTechnique()
+```
+
+---
+
+## Performance Tiers
+
+Auto-detected on load based on `navigator.hardwareConcurrency`:
+
+| Tier | Cores | Particles | FPS | Camera | Antialiasing |
+|---|---|---|---|---|---|
+| LOW | ≤ 2 or mobile | 5,000 | 30 | 320×240 | Off |
+| MID | 3–4 | 11,000 | 60 | 480×360 | Off |
+| HIGH | 5+ | 20,000 | 60 | 640×480 | On |
+
+---
+
+## Stack
+
+| Library | Version | Purpose |
+|---|---|---|
+| [Three.js](https://threejs.org) | r160 | WebGL particle rendering |
+| [MediaPipe Hands](https://mediapipe.dev) | Latest | Real-time 21-point hand tracking |
+| UnrealBloomPass | Three addons | Post-processing glow |
+| MediaPipe Camera Utils | Latest | Webcam stream |
+
+---
+
+## What shizuadev Added
+
+Built on top of the original 4-technique SAT0RU demo:
+
+- **15 new techniques** (19 total) with unique particle shapes and rotations
+- **Rebuilt gesture detection** — smoothing, confidence scoring, voting, hysteresis
+- **3-tier performance system** — auto-detects hardware, adjusts particle count + resolution
+- **Per-technique rotation speeds** — each technique rotates differently
+- **Cursed energy output bar** — visual power meter per technique
+- **Flash activation pulse** — brief screen flash on technique switch
+- **Frame limiter** — targets 30 or 60 FPS based on tier, no wasted GPU cycles
+- **`low-power` GPU hint** on tier 0
+- **Camera mirror fix** — both video and canvas overlay correctly mirrored
+- **Loading overlay** with animated progress bar
+- **Removed on-screen guide panel** — see the PDF instead
 
 ---
 
@@ -120,34 +141,15 @@ Camera access requires HTTPS or localhost. Use a local server if opening directl
 
 | Browser | Support |
 |---|---|
-| Chrome / Edge | ✅ Full support |
-| Firefox | ✅ Works (slightly lower perf on bloom) |
-| Safari | ⚠️ Limited (WebGL blend mode quirks) |
-| Mobile Chrome | ✅ Works (auto eco mode) |
-
----
-
-## Enhancements by shizuadev
-
-The following changes were made on top of the original `SAT0RU` project by reinesana:
-
-- Added 8 new techniques: Blue, Dragon, Ten Shadows, Reversal, Star Rage, Blood Pond, Projection Sorcery, Meteor Furnace
-- Adaptive performance system for old / low-end machines
-- Gesture debouncing (5-frame confirmation before switching)
-- Mirrored canvas overlay for natural camera view
-- Cursed Energy output bar UI
-- Frame limiter (30/60 FPS target based on hardware)
-- Reduced camera resolution on eco mode (320×240 vs 640×480)
-- Responsive layout with `clamp()` sizing for all screen sizes
-- Loading overlay with animated progress bar
-- On-screen hand sign reference guide
-- Credits panel
-- Cleaner screen shake (amplitude tied to bloom strength)
+| Chrome / Edge | ✅ Full |
+| Firefox | ✅ Works |
+| Safari | ⚠️ Limited WebGL blend mode |
+| Mobile Chrome | ✅ Auto eco mode |
 
 ---
 
 ## License
 
-This project is based on open-source work by [reinesana](https://github.com/reinesana).  
-All Jujutsu Kaisen intellectual property belongs to Gege Akutami / Shueisha.  
-This is a fan project for educational and creative purposes only.
+Fan project for educational and creative purposes.  
+Jujutsu Kaisen © Gege Akutami / Shueisha.  
+Original code © [reinesana](https://github.com/reinesana/SAT0RU).
