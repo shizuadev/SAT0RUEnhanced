@@ -9,7 +9,7 @@
 *Point your hand at the webcam. Activate cursed techniques.*
 
 [![Original](https://img.shields.io/badge/Original-reinesana-ff3333?style=flat-square)](https://github.com/reinesana/SAT0RU)
-[![Enhanced](https://img.shields.io/badge/Enhanced-shizuadev-00ffff?style=flat-square)](https://github.com/reinesana)
+[![Enhanced](https://img.shields.io/badge/Enhanced-shizuadev-00ffff?style=flat-square)](https://github.com/shizuadev)
 [![License](https://img.shields.io/badge/License-Fan%20Project-bb00ff?style=flat-square)](#license)
 
 </div>
