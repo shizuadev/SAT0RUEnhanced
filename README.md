@@ -22,7 +22,7 @@
 |---|---|
 | **Original Creator** | [reinesana](https://github.com/reinesana) |
 | **Original Repository** | [github.com/reinesana/SAT0RU](https://github.com/reinesana/SAT0RU) |
-| **Enhanced By** | **shizuadev** |
+| **Enhanced By** | **[shizuadev](https://github.com/shizuadev)** |
 
 ---
 
