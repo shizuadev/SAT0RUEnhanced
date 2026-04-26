@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JJK · Cursed Technique Visualizer</title>
+<!-- Rajdhani: universal, clean, slightly military. Noto Serif JP for kanji. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Serif+JP:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--c:#00ffff;--g:rgba(0,255,255,.35)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000}
+body{font-family:'Rajdhani',sans-serif;cursor:none}
+#cv{position:fixed;inset:0;z-index:1}
+#grain{
+  position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:190px;animation:gs .3s steps(1) infinite;
+}
+@keyframes gs{0%{background-position:0 0}25%{background-position:-45px -30px}50%{background-position:28px 52px}75%{background-position:-22px 18px}}
+#vig{position:fixed;inset:0;z-index:5;pointer-events:none;background:radial-gradient(ellipse at 50% 38%,transparent 48%,rgba(0,0,0,.85) 100%)}
+#flash{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .07s}
+#dot{position:fixed;width:7px;height:7px;border-radius:50%;background:var(--c);z-index:9999;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 0 10px 4px var(--g);transition:background .3s,box-shadow .3s;mix-blend-mode:screen}
+#topbar{position:fixed;top:0;left:0;right:0;height:2px;background:var(--c);box-shadow:0 0 12px var(--c);z-index:20;transition:background .45s,box-shadow .45s}
+#ui{position:fixed;top:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;padding-top:16px;pointer-events:none;z-index:20}
+.kanji{font-family:'Noto Serif JP',serif;font-weight:900;font-size:clamp(1.7rem,4.5vw,3rem);letter-spacing:.25em;background:linear-gradient(180deg,#fff 10%,rgba(255,255,255,.32) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdiv{margin-top:8px;width:clamp(180px,28vw,300px);height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
+#tname{margin-top:10px;font-size:clamp(.72rem,1.9vw,1.05rem);font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--c);text-shadow:0 0 18px var(--g),0 0 42px var(--g);transition:color .45s,text-shadow .45s;min-height:1.3em;text-align:center}
+#cname{margin-top:4px;font-size:.6rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.2);transition:color .45s}
+#ebar{margin-top:11px;display:flex;align-items:center;gap:9px}
+#elbl{font-size:.54rem;font-weight:600;letter-spacing:.18em;color:rgba(255,255,255,.14)}
+#etrack{position:relative;width:clamp(100px,14vw,155px);height:2px;background:rgba(255,255,255,.06);overflow:hidden}
+#efill{position:absolute;inset:0;width:0%;background:var(--c);box-shadow:0 0 8px var(--g);transition:width .8s cubic-bezier(.4,0,.2,1),background .45s,box-shadow .45s}
+#epct{font-size:.54rem;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.18);transition:color .45s}
+#cred{margin-top:10px;font-size:.48rem;font-weight:500;letter-spacing:.2em;color:rgba(255,255,255,.06)}
+#panel{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;padding-bottom:14px}
+#pill{margin-bottom:7px;display:inline-flex;align-items:center;gap:7px;padding:4px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+#pdot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .3s,box-shadow .3s}
+#ptxt{font-size:.52rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.18);transition:color .3s}
+#cambox{position:relative;width:clamp(240px,70vw,375px);height:clamp(155px,35vh,245px);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:#000;box-shadow:0 0 50px rgba(0,0,0,.9),0 0 22px var(--g);transition:box-shadow .45s}
+#cambox video{width:100%;height:100%;display:block;object-fit:cover;opacity:.74;transform:scaleX(-1)}
+#cambox canvas{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1)}
+#cambox::before,#cambox::after{content:'';position:absolute;z-index:2;pointer-events:none;width:13px;height:13px;border-color:var(--c);border-style:solid;opacity:.45;transition:border-color .45s}
+#cambox::before{top:6px;left:6px;border-width:1px 0 0 1px}
+#cambox::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+#fbars{position:absolute;left:-42px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px}
+.fb-row{display:flex;align-items:center;gap:5px}
+.fb-lbl{font-family:'Rajdhani',sans-serif;font-size:.42rem;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.18);width:22px;text-align:right}
+.fb-track{width:20px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.fb-fill{height:100%;width:0%;border-radius:2px;transition:width .09s linear}
+#perf{position:fixed;top:12px;left:13px;z-index:30;pointer-events:none;font-size:.46rem;font-weight:600;letter-spacing:.18em;color:rgba(255,255,255,.08)}
+#loading{position:fixed;inset:0;z-index:500;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 1s ease}
+.ld-k{font-family:'Noto Serif JP',serif;font-weight:900;font-size:clamp(2.2rem,6vw,4rem);letter-spacing:.22em;color:rgba(255,255,255,.9);animation:ldp 1.5s ease-in-out infinite alternate}
+@keyframes ldp{from{text-shadow:0 0 16px rgba(0,255,255,.2)}to{text-shadow:0 0 50px rgba(0,255,255,.65),0 0 80px rgba(0,255,255,.2)}}
+.ld-bar{width:170px;height:1px;background:rgba(255,255,255,.05)}
+.ld-fill{height:100%;width:0%;background:#0ff;transition:width .18s;box-shadow:0 0 8px #0ff8}
+.ld-sub{font-size:.52rem;font-weight:600;letter-spacing:.38em;color:rgba(255,255,255,.15)}
+</style>
+
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+<!-- Pin MediaPipe to exact stable versions — prevents "Reconnecting" loop -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466862/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-k">呪術廻戦</div>
+  <div class="ld-bar"><div class="ld-fill" id="ldf"></div></div>
+  <div class="ld-sub">INITIALIZING CURSED ENERGY</div>
+</div>
+
+<div id="grain"></div>
+<div id="vig"></div>
+<div id="flash"></div>
+<div id="dot"></div>
+<div id="topbar"></div>
+<span id="perf">—</span>
+
+<div id="ui">
+  <div class="kanji">呪術廻戦</div>
+  <div class="hdiv"></div>
+  <div id="tname">CURSED ENERGY DORMANT</div>
+  <div id="cname">—</div>
+  <div id="ebar">
+    <span id="elbl">CURSED OUTPUT</span>
+    <div id="etrack"><div id="efill"></div></div>
+    <span id="epct">0%</span>
+  </div>
+  <div id="cred">ORIGINAL: REINESANA &nbsp;·&nbsp; ENHANCED: SHIZUADEV</div>
+</div>
+
+<div id="panel">
+  <div id="pill"><div id="pdot"></div><span id="ptxt">NO HAND DETECTED</span></div>
+  <div id="cambox">
+    <video class="input_video" playsinline muted></video>
+    <canvas id="ocv"></canvas>
+    <div id="fbars">
+      <div class="fb-row"><span class="fb-lbl">THB</span><div class="fb-track"><div class="fb-fill" id="fb0"></div></div></div>
+      <div class="fb-row"><span class="fb-lbl">IDX</span><div class="fb-track"><div class="fb-fill" id="fb1"></div></div></div>
+      <div class="fb-row"><span class="fb-lbl">MID</span><div class="fb-track"><div class="fb-fill" id="fb2"></div></div></div>
+      <div class="fb-row"><span class="fb-lbl">RNG</span><div class="fb-track"><div class="fb-fill" id="fb3"></div></div></div>
+      <div class="fb-row"><span class="fb-lbl">PNK</span><div class="fb-track"><div class="fb-fill" id="fb4"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const $=id=>document.getElementById(id);
+const tnEl=$('tname'),cnEl=$('cname'),efEl=$('efill'),epEl=$('epct');
+const flashEl=$('flash'),topbarEl=$('topbar'),pdotEl=$('pdot'),ptxtEl=$('ptxt');
+const camboxEl=$('cambox'),dotEl=$('dot');
+const fb=[0,1,2,3,4].map(i=>$('fb'+i));
+
+document.addEventListener('mousemove',e=>{dotEl.style.left=e.clientX+'px';dotEl.style.top=e.clientY+'px';});
+
+// ── Tier ──────────────────────────────────────────────────────────────────────
+const mob=(/Mobi|Android|iPhone|iPad/i).test(navigator.userAgent);
+const cores=navigator.hardwareConcurrency||2;
+const tier=mob?0:cores<=2?0:cores<=4?1:2;
+const COUNT=[4500,11000,19000][tier];
+const PR=[1,1.2,Math.min(devicePixelRatio,2)][tier];
+const LERP=[.11,.085,.068][tier];
+const MCX=[0,1,1][tier];
+const CAM_W=[320,480,640][tier];
+const CAM_H=[240,360,480][tier];
+$('perf').textContent=['LOW','MID','HIGH'][tier];
+
+// ── Loading ───────────────────────────────────────────────────────────────────
+let ldv=0;const ldEl=$('ldf'),ldT=setInterval(()=>{ldv=Math.min(ldv+Math.random()*13,90);ldEl.style.width=ldv+'%';},150);
+setTimeout(()=>{clearInterval(ldT);ldEl.style.width='100%';setTimeout(()=>{const l=$('loading');l.style.opacity='0';setTimeout(()=>l.remove(),1100);},350);},2000);
+
+// ── Three.js ──────────────────────────────────────────────────────────────────
+const scene=new THREE.Scene();
+const cam3=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,1000);
+cam3.position.z=55;
+const renderer=new THREE.WebGLRenderer({antialias:tier>=2,alpha:true,powerPreference:tier===0?'low-power':'high-performance'});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(PR);renderer.domElement.id='cv';
+document.body.appendChild(renderer.domElement);
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,cam3));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),1.4,.4,.85);
+composer.addPass(bloom);
+
+// ── Particle buffers ──────────────────────────────────────────────────────────
+const geo=new THREE.BufferGeometry();
+const pos=new Float32Array(COUNT*3),col=new Float32Array(COUNT*3),sz=new Float32Array(COUNT);
+const tPos=new Float32Array(COUNT*3),tCol=new Float32Array(COUNT*3),tSz=new Float32Array(COUNT);
+geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+geo.setAttribute('size',new THREE.BufferAttribute(sz,1));
+const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.28,vertexColors:true,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,sizeAttenuation:true}));
+scene.add(pts);
+const AMBI=Math.floor(COUNT*.06),ambiG=new THREE.BufferGeometry(),ambiA=new Float32Array(AMBI*3);
+for(let i=0;i<AMBI*3;i++)ambiA[i]=(Math.random()-.5)*220;
+ambiG.setAttribute('position',new THREE.BufferAttribute(ambiA,3));
+const ambi=new THREE.Points(ambiG,new THREE.PointsMaterial({size:.09,color:0x001a33,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));
+scene.add(ambi);
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const TAU=Math.PI*2,R=Math.random;
+function st(i,x,y,z,r,g,b,s){tPos[i*3]=x;tPos[i*3+1]=y;tPos[i*3+2]=z;tCol[i*3]=r;tCol[i*3+1]=g;tCol[i*3+2]=b;tSz[i]=s;}
+function sph(rad){const t=R()*TAU,p=Math.acos(2*R()-1);return[rad*Math.sin(p)*Math.cos(t),rad*Math.sin(p)*Math.sin(t),rad*Math.cos(p)];}
+
+// ── Generators ────────────────────────────────────────────────────────────────
+function genNeutral(i){if(i<COUNT*.05){const[x,y,z]=sph(14+R()*20);st(i,x,y,z,.04,.07,.18,.35);}else st(i,0,0,0,0,0,0,0);}
+function genRed(i){if(i<COUNT*.08){const[x,y,z]=sph(R()*9);st(i,x,y,z,3.5,.1,.05,3);return;}const f=i/COUNT,arm=i%3,a=f*16+arm*(TAU/3),r=2+f*44;st(i,r*Math.cos(a),r*Math.sin(a)*.5,(R()-.5)*(11*f),.9,.04,0,1.1);}
+function genBlue(i){if(i<COUNT*.08){const[x,y,z]=sph(R()*8);st(i,x,y,z,.04,.25,3.5,3);return;}const f=i/COUNT,arm=i%3,a=-f*16+arm*(TAU/3),r=2+f*44;st(i,r*Math.cos(a),r*Math.sin(a)*.5,(R()-.5)*(11*f),0,.12,1.1,1.1);}
+function genPurple(i){const f=i/COUNT;if(f<.12){const[x,y,z]=sph(3+R()*5);st(i,x,y,z,1.2,.05,2,3.5);}else if(f<.5){const[x,y,z]=sph(20+R()*4);st(i,x,y,z,.7,.05,1.1,2.5);}else st(i,(R()-.5)*110,(R()-.5)*110,(R()-.5)*110,.5,.1,.8,.7);}
+function genVoid(i){const f=i/COUNT;if(f<.12){const a=R()*TAU,r=26+(R()-.5)*1.5;st(i,r*Math.cos(a),r*Math.sin(a),(R()-.5)*.8,1.1,1.1,1.2,2.8);}else if(f<.24){const a=R()*TAU,r=16+(R()-.5);st(i,r*Math.cos(a),r*Math.sin(a),(R()-.5)*.5,.3,.7,1.1,1.2);}else{const[x,y,z]=sph(35+R()*80);st(i,x,y,z,.08,.5,1.0,.5);}}
+function genLimitless(i){const ring=i%9,angle=(i/COUNT)*TAU*4+ring*(TAU/9),r=5+ring*6,sp=(R()-.5)*1.5;st(i,r*Math.cos(angle)+sp,r*Math.sin(angle)*.3+sp*.3,sp*4,.85,.95,1,ring<2?3.5:.9);}
+function genStarRage(i){const[x,y,z]=sph(2+R()*90),d=Math.sqrt(x*x+y*y+z*z),b=d<8?4:d<25?2:d<50?1.2:.5;st(i,x,y,z,b,b,b,b>2.5?3.5:.85);}
+function genShrine(i){const f=i/COUNT;if(f<.3){const a=R()*TAU,r=R()*60;st(i,r*Math.cos(a),-15,r*Math.sin(a),.45,0,0,.85);}else if(f<.46){const px=((i%4)<2?1:-1)*(10+R()*2),pz=((i%4)%2===0?1:-1)*(8+R()*2);st(i,px+(R()-.5)*1.5,-15+R()*32,pz+(R()-.5)*1.5,.25,.01,.01,.65);}else if(f<.65){const t=R()*TAU,rad=R()*32,curve=Math.pow(rad/32,2)*12;st(i,rad*Math.cos(t),16-curve+R()*2,rad*Math.sin(t)*.55,.7,0,0,.65);}else st(i,0,0,0,0,0,0,0);}
+function genDismantle(i){const blade=i%8,f=i/COUNT,a=blade*(TAU/8),r=1+f*52,thick=Math.sin(f*Math.PI)*2.8;st(i,r*Math.cos(a)+thick*Math.cos(a+Math.PI/2),r*Math.sin(a)+thick*Math.sin(a+Math.PI/2),(R()-.5)*3,1.3,.09,0,i<COUNT*.04?3.8:1.1);}
+function genCleave(i){const f=i/COUNT,b=(i%5)-2,sweep=f*65-32,thick=Math.sin(f*Math.PI)*5;st(i,sweep+thick*b*.28,sweep*.38+thick,(R()-.5)*5,1.4,.18,0,i<COUNT*.05?3.2:.95);}
+function genProjection(i){const gs=Math.ceil(Math.sqrt(COUNT))*.55,gx=(i%gs)-gs/2,gy=Math.floor(i/gs)-gs/2,w=Math.sin(gx*.42)*Math.cos(gy*.42)*4,on=Math.abs(gx%5)<.65||Math.abs(gy%5)<.65;if(on)st(i,gx*1.8,gy*.44,w,.18,1,.8,1.4);else st(i,gx*1.8,gy*.44,w,.015,.08,.06,.12);}
+function genStrawDoll(i){const nail=i%12,f=i/COUNT,a=nail*(TAU/12),r=f*48,pulse=Math.sin(f*18)>0?1:.1;st(i,r*Math.cos(a),r*Math.sin(a)*.55,(R()-.5)*4,1.1,.75,0,pulse*(i<COUNT*.05?3.2:1));}
+function genBloodPond(i){const f=i/COUNT;if(f<.38){const a=R()*TAU,r=R()*42;st(i,r*Math.cos(a),-16+(Math.sin(r*.45)*1.5)+(R()*.4),r*Math.sin(a)*.28,1.3,0,.035,.9);}else{const ff=(i/COUNT)*TAU*6;st(i,(2+ff*.75)*Math.cos(ff),(R()-.5)*38,(2+ff*.75)*Math.sin(ff),1.2,.02,.02,.65);}}
+function genPiercing(i){const beam=i%16,f=R(),a=beam*(TAU/16),r=5+f*58;st(i,r*Math.cos(a),r*Math.sin(a)*.45,(R()-.5)*4,1.4,0,0,(1-f)*2.8);}
+function genCursedSpeech(i){const ring=i%10,f=i/COUNT,angle=f*TAU*2.5,r=3+ring*5.5,pulse=Math.sin(ring-f*32)*.5+.5;st(i,r*Math.cos(angle),r*Math.sin(angle)*.22+(R()-.5)*.4,(R()-.5)*1.2,.95,.95,.22,pulse*2);}
+function genRika(i){const f=i/COUNT,[x,y,z]=sph(7+f*55),d=Math.sqrt(x*x+y*y+z*z),b=d<18?2.8:.7;st(i,x+(R()-.5)*4,y+(R()-.5)*4,z+(R()-.5)*4,1.1*b,.04*b,.85*b,b>1?2.5:.85);}
+function genFurnace(i){const rise=R()*58-5,flare=Math.max(0,(30-rise)*.85),j=(R()-.5)*flare,r=flare*.42+Math.abs(j)*.3,a=R()*TAU,hot=rise<8?3.5:rise<22?1.7:.6;st(i,r*Math.cos(a)+j*.28,rise,r*Math.sin(a)+j*.22,1.4*hot,.28*hot,0,hot>2.5?3:.9);}
+function genTenShadows(i){const arm=i%10,f=i/COUNT,a=(arm/10)*TAU,r=4+f*45,w=Math.sin(f*14+arm*.8)*3.2;st(i,r*Math.cos(a)+w,r*Math.sin(a)*.48+w*.28,(R()-.5)*r*.4,.95,.52,0,i<COUNT*.09?2.2:.75);}
+function genDragon(i){const f=(i/COUNT)*TAU*7.5,layer=i%3,sR=(7+layer*7)+f*.55,w=Math.sin(f*5)*2.8;st(i,sR*Math.cos(f)+w,f*2.7-22,sR*Math.sin(f),.08,1.2,.35,i<COUNT*.035?3.5:.95);}
+function genReversal(i){const f=(i/COUNT)*TAU,p=i%5,pa=f+p*(TAU/5),r=Math.abs(Math.sin(f*5))*25+R()*5,gw=i<COUNT*.05?3.2:.88;st(i,r*Math.cos(pa),r*Math.sin(pa)*.6,(R()-.5)*r*.42,1.2*gw,.18*gw,.58*gw,1.0);}
+function genResonance(i){const f=i/COUNT,ring=i%6,a=f*TAU*3+ring*(TAU/6),r=2+ring*7+Math.sin(f*20)*2,hot=ring<2?2:.7;st(i,r*Math.cos(a),r*Math.sin(a)*.5,(R()-.5)*5,1.1*hot,.65*hot,0,hot>1?2:.8);}
+function genBirdManipulation(i){const f=i/COUNT,bird=i%30,bAngle=(bird/30)*TAU+f*8,bR=8+Math.sin(f*TAU*5)*20,bY=Math.cos(f*TAU*3+bird)*12;st(i,bR*Math.cos(bAngle),bY,bR*Math.sin(bAngle),.15,.04,.04,f<.1?2.5:.9);}
+function genGamble(i){const f=i/COUNT,slot=i%7,a=slot*(TAU/7)+f*2,r=5+slot*4,glow=Math.sin(f*TAU*10+slot)>.6?4:.4,hue=slot/7;st(i,r*Math.cos(a+(R()-.5)*.2),(f*60-30)*(Math.sin(f*12)*.3+1),r*Math.sin(a+(R()-.5)*.2),(hue<.33?1.2:.1)*glow,(hue>.33&&hue<.66?1.2:.1)*glow,(hue>.66?1.2:.1)*glow,glow>2?2.5:.5);}
+function genCursedSpirit(i){const f=i/COUNT,spirit=i%20,sA=(spirit/20)*TAU+f*TAU*.5,sR=10+spirit*1.5+Math.sin(f*TAU*3+spirit)*8,sY=Math.cos(f*TAU*4+spirit*.7)*18,dark=spirit%3===0;st(i,sR*Math.cos(sA)+(R()-.5)*3,sY+(R()-.5)*3,sR*Math.sin(sA)+(R()-.5)*3,dark?.4:.08,0,dark?0:.3,dark?1.8:.6);}
+function genSplitSoul(i){const f=i/COUNT,arc=Math.PI*2.5,a=f*arc-arc/2,r=20+Math.sin(f*TAU*8)*3,blade=(i%3)-1;st(i,r*Math.cos(a)+blade*1.5,r*Math.sin(a)*.2+blade*4,(R()-.5)*2,.9,.9,1.0,f<.05||f>.95?3:1.1);}
+function genIceFormation(i){const f=i/COUNT,spike=i%16,a=spike*(TAU/16),r=2+f*45,jitter=(R()-.5)*2,cold=f<.1?3:.8;st(i,r*Math.cos(a)+jitter,r*Math.sin(a)*.3+jitter*.5,(R()-.5)*r*.2,.3*cold,.7*cold,1.0*cold,cold>1.5?2.5:.9);}
+function genTransfiguration(i){const f=i/COUNT,[x,y,z]=sph(5+f*40),d=Math.sqrt(x*x+y*y+z*z),distort=Math.sin(d*.4)*3,sick=d<15?1.5:.4;st(i,x+distort*(R()-.5),y+distort*(R()-.5),z+distort*(R()-.5),.05*sick,.7*sick,.4*sick,sick>1?2:.6);}
+function genGorilla(i){const f=i/COUNT,ring=i%5,a=(i/COUNT)*TAU*2+ring*(TAU/5),r=ring*8+f*20,impact=ring===0?3.5:ring===1?2:.6;st(i,r*Math.cos(a),r*Math.sin(a)*.15+(R()-.5)*4,r*Math.sin(a)*.3,impact*.9,impact*.5,0,impact>2?3:.9);}
+function genInvertedSpear(i){const f=i/COUNT,a=R()*TAU,r=f*55,cv=(1-f)*3;st(i,r*Math.cos(a)*.15,r-28,r*Math.sin(a)*.15,1.1*cv,1.0*cv,.9*cv,cv>2?3:.9);}
+
+// ── Technique table ───────────────────────────────────────────────────────────
+const ENERGY={neutral:0,red:55,blue:55,purple:95,void:80,limitless:75,starRage:100,shrine:90,dismantle:70,cleave:75,projection:45,strawDoll:65,bloodPond:72,piercing:78,cursedSpeech:68,rika:92,furnace:85,tenShadows:65,dragon:50,reversal:60,resonance:63,birdManipulation:58,gamble:88,cursedSpirit:82,splitSoul:70,iceFormation:74,transfiguration:87,gorilla:60,invertedSpear:77};
+const TECH={
+  neutral:          {n:'CURSED ENERGY DORMANT',              c:'—',                color:'#00ffff',bloom:1.0, fn:genNeutral},
+  red:              {n:'Reverse Cursed Technique: Red',       c:'GOJO SATORU',      color:'#ff2222',bloom:2.8, fn:genRed},
+  blue:             {n:'Cursed Technique: Blue',              c:'GOJO SATORU',      color:'#2299ff',bloom:2.8, fn:genBlue},
+  purple:           {n:'Secret Technique: Hollow Purple',     c:'GOJO SATORU',      color:'#bb00ff',bloom:4.5, fn:genPurple},
+  void:             {n:'Domain Expansion: Infinite Void',     c:'GOJO SATORU',      color:'#00ffff',bloom:2.2, fn:genVoid},
+  limitless:        {n:'Infinity: Limitless',                 c:'GOJO SATORU',      color:'#cceeff',bloom:2.2, fn:genLimitless},
+  starRage:         {n:'Unlimited Void: Star Rage',           c:'GOJO SATORU',      color:'#ffffff',bloom:6.0, fn:genStarRage},
+  shrine:           {n:'Domain Expansion: Malevolent Shrine', c:'RYOMEN SUKUNA',    color:'#ff0000',bloom:2.8, fn:genShrine},
+  dismantle:        {n:'Sukuna CT: Dismantle',                c:'RYOMEN SUKUNA',    color:'#ff5500',bloom:3.0, fn:genDismantle},
+  cleave:           {n:'Sukuna CT: Cleave',                   c:'RYOMEN SUKUNA',    color:'#ff6622',bloom:3.0, fn:genCleave},
+  projection:       {n:'Projection Sorcery: Ratio Technique', c:'NANAMI KENTO',     color:'#00ffcc',bloom:1.9, fn:genProjection},
+  strawDoll:        {n:'Straw Doll Technique: Hairpin',       c:'NOBARA KUGISAKI',  color:'#ffcc00',bloom:2.4, fn:genStrawDoll},
+  bloodPond:        {n:'Blood Pond: Supernova Convergence',   c:'CHOSO',            color:'#ff4422',bloom:3.0, fn:genBloodPond},
+  piercing:         {n:'Piercing Blood',                      c:'CHOSO',            color:'#ff1111',bloom:3.5, fn:genPiercing},
+  cursedSpeech:     {n:'Cursed Speech: Fallen, Burst',        c:'TOGE INUMAKI',     color:'#ffff55',bloom:2.4, fn:genCursedSpeech},
+  rika:             {n:'Rika: Cursed Spirit Manifestation',   c:'YUTA OKKOTSU',     color:'#ff44cc',bloom:4.0, fn:genRika},
+  furnace:          {n:'Maximum CT: Meteor Furnace',          c:'JOGO',             color:'#ff6600',bloom:3.8, fn:genFurnace},
+  tenShadows:       {n:'Ten Shadows Technique: Divergence',   c:'MEGUMI FUSHIGURO', color:'#ffaa00',bloom:2.6, fn:genTenShadows},
+  dragon:           {n:'Cursed Tool: Dragon Bone',            c:'TOOL USER',        color:'#00ff88',bloom:2.2, fn:genDragon},
+  reversal:         {n:'Reverse CT: Cursed Flower',           c:'SHOKO IEIRI',      color:'#ff69b4',bloom:2.7, fn:genReversal},
+  resonance:        {n:'Straw Doll: Resonance',               c:'NOBARA KUGISAKI',  color:'#ffaa33',bloom:2.5, fn:genResonance},
+  birdManipulation: {n:'Black Bird Manipulation',              c:'MEI MEI',          color:'#cc4444',bloom:2.2, fn:genBirdManipulation},
+  gamble:           {n:'Domain Expansion: Idle Death Gamble',  c:'HAKARI KINJI',     color:'#ff00ff',bloom:4.2, fn:genGamble},
+  cursedSpirit:     {n:'Cursed Spirit Manipulation',           c:'GETO SUGURU',      color:'#6600cc',bloom:3.0, fn:genCursedSpirit},
+  splitSoul:        {n:'Cursed Tool: Split Soul Katana',       c:'MAKI ZENIN',       color:'#e0e8ff',bloom:2.8, fn:genSplitSoul},
+  iceFormation:     {n:'Ice Formation: Frost Spike Array',     c:'URAUME',           color:'#88ddff',bloom:3.0, fn:genIceFormation},
+  transfiguration:  {n:'Idle Transfiguration: Soul Distortion',c:'MAHITO',           color:'#00ff88',bloom:3.2, fn:genTransfiguration},
+  gorilla:          {n:'Surprise Attack: Black Flash',         c:'PANDA',            color:'#ffaa00',bloom:3.5, fn:genGorilla},
+  invertedSpear:    {n:'Inverted Spear of Heaven',             c:'TOJI FUSHIGURO',   color:'#e8e8ff',bloom:3.8, fn:genInvertedSpear},
+};
+const ROT={neutral:{y:.004,x:.001,z:0},red:{y:0,x:0,z:-.11},blue:{y:0,x:0,z:.09},purple:{y:.06,x:.01,z:.22},void:{y:.006,x:.002,z:0},limitless:{y:.009,x:.003,z:.005},starRage:{y:.02,x:.01,z:.013},shrine:{y:0,x:0,z:0},dismantle:{y:0,x:0,z:.08},cleave:{y:.11,x:0,z:.045},projection:{y:.013,x:0,z:0},strawDoll:{y:.09,x:0,z:-.06},bloodPond:{y:.045,x:0,z:0},piercing:{y:0,x:0,z:-.11},cursedSpeech:{y:.016,x:.011,z:0},rika:{y:.065,x:.022,z:.03},furnace:{y:0,x:-.02,z:.065},tenShadows:{y:.075,x:0,z:0},dragon:{y:.03,x:.013,z:0},reversal:{y:0,x:.022,z:-.06},resonance:{y:.07,x:.02,z:.04},birdManipulation:{y:.055,x:.018,z:.025},gamble:{y:.12,x:.04,z:.06},cursedSpirit:{y:.03,x:.015,z:.01},splitSoul:{y:0,x:0,z:-.08},iceFormation:{y:.025,x:.01,z:.015},transfiguration:{y:.08,x:.04,z:.02},gorilla:{y:0,x:0,z:.05},invertedSpear:{y:0,x:-.04,z:0}};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let curTech='neutral',shakeAmt=0,gColor='#00ffff';
+function setCol(c){document.documentElement.style.setProperty('--c',c);document.documentElement.style.setProperty('--g',c+'44');}
+function activateTech(key){
+  if(curTech===key)return;curTech=key;
+  const t=TECH[key];gColor=t.color;setCol(t.color);bloom.strength=t.bloom;
+  tnEl.style.color=t.color;tnEl.style.textShadow=`0 0 18px ${t.color}88,0 0 44px ${t.color}44`;tnEl.textContent=t.n;
+  cnEl.textContent=t.c;cnEl.style.color=t.color+'cc';
+  const pct=ENERGY[key]||0;efEl.style.width=pct+'%';efEl.style.background=t.color;efEl.style.boxShadow=`0 0 10px ${t.color}88`;epEl.textContent=pct+'%';epEl.style.color=t.color+'cc';
+  topbarEl.style.background=t.color;topbarEl.style.boxShadow=`0 0 14px ${t.color}`;
+  camboxEl.style.boxShadow=`0 0 50px rgba(0,0,0,.9),0 0 26px ${t.color}44`;
+  dotEl.style.background=t.color;dotEl.style.boxShadow=`0 0 12px 5px ${t.color}66`;
+  shakeAmt=key!=='neutral'?t.bloom*.055:0;
+  flashEl.style.background=t.color+'18';flashEl.style.opacity='1';setTimeout(()=>flashEl.style.opacity='0',80);
+  pts.rotation.set(0,0,0);for(let i=0;i<COUNT;i++)t.fn(i);
+}
+
+// ── Gesture detection ─────────────────────────────────────────────────────────
+const videoEl=document.querySelector('.input_video'),ocv=$('ocv'),ctx2d=ocv.getContext('2d');
+let smoothed=null;
+const ALPHA=0.40;
+
+function lerp3(a,b,t){return a.map((p,i)=>({x:p.x+(b[i].x-p.x)*t,y:p.y+(b[i].y-p.y)*t,z:p.z+(b[i].z-p.z)*t}));}
+
+// Hand size: wrist(0) to mid-MCP(9)
+function hs(lm){return Math.hypot(lm[0].x-lm[9].x,lm[0].y-lm[9].y)||.001;}
+
+// Finger extension: PIP vs TIP, normalized by hand size
+// In image coords Y increases downward, so when finger up: lm[pip].y > lm[tip].y
+function ext(lm,pip,tip){
+  const h=hs(lm),dy=(lm[pip].y-lm[tip].y)/h;
+  return Math.max(0,Math.min(1,dy*4.5));
+}
+
+// Thumb: lateral distance of tip from palm, normalized
+function thb(lm){
+  const h=hs(lm),palmX=lm[9].x,dx=Math.abs(lm[4].x-lm[2].x)/h,dist=Math.abs(lm[4].x-palmX)/h;
+  return Math.max(0,Math.min(1,(dx+dist)*2.2));
+}
+
+// Pinch: index-tip to thumb-tip, normalized
+function pin(lm){const h=hs(lm),d=Math.hypot(lm[8].x-lm[4].x,lm[8].y-lm[4].y)/h;return Math.max(0,1-d*5.5);}
+
+// Fist: avg tip-to-palm-center, normalized
+function fst(lm){const h=hs(lm),cx=(lm[0].x+lm[9].x)*.5,cy=(lm[0].y+lm[9].y)*.5,avg=[8,12,16,20].reduce((s,t)=>s+Math.hypot(lm[t].x-cx,lm[t].y-cy),0)/4;return Math.max(0,1-(avg/h)*3.5);}
+
+// Spread: thumb-tip to pinky-tip
+function spr(lm){return Math.hypot(lm[4].x-lm[20].x,lm[4].y-lm[20].y)/hs(lm);}
+
+function classify(lm){
+  const idx=ext(lm,6,8),mid=ext(lm,10,12),rng=ext(lm,14,16),pnk=ext(lm,18,20);
+  const th=thb(lm),pi=pin(lm),fi=fst(lm),sp=spr(lm);
+  fb[0].style.width=(th*100)+'%';fb[0].style.background=gColor;
+  fb[1].style.width=(idx*100)+'%';fb[1].style.background=gColor;
+  fb[2].style.width=(mid*100)+'%';fb[2].style.background=gColor;
+  fb[3].style.width=(rng*100)+'%';fb[3].style.background=gColor;
+  fb[4].style.width=(pnk*100)+'%';fb[4].style.background=gColor;
+  const UP=0.58,DN=0.30;
+  const iU=idx>UP,iD=idx<DN,mU=mid>UP,mD=mid<DN,rU=rng>UP,rD=rng<DN,pU=pnk>UP,pD=pnk<DN,tU=th>0.52,tD=th<0.22;
+  if(pi>0.78)                        return['purple',pi];
+  if(sp>1.5&&iU&&mU&&rU&&pU&&tU)    return['starRage',0.95];
+  if(fi>0.72)                        return['cleave',fi];
+  if(iU&&mU&&rU&&pU)                 return['shrine',(idx+mid+rng+pnk)/4];
+  if(iU&&mU&&rU&&pD&&tU)            return['piercing',(idx+mid+rng+th)/4];
+  if(iU&&mU&&rU&&pD&&tD)            return['reversal',(idx+mid+rng)/3];
+  if(iU&&mU&&rD&&pU&&tU)            return['rika',(idx+mid+pnk+th)/4];
+  if(iU&&mU&&rD&&pU)                return['dismantle',(idx+mid+pnk)/3];
+  if(iD&&mU&&rU&&pU)                return['resonance',(mid+rng+pnk)/3];
+  if(iU&&mD&&rU&&pU)                return['cursedSpirit',(idx+rng+pnk)/3];
+  if(iU&&mU&&rD&&pD&&tU)            return['piercing',(idx+mid+th)/3];
+  if(iU&&mU&&rD&&pD)                return['blue',(idx+mid)/2];
+  if(iU&&mD&&rU&&pD)                return['projection',(idx+rng)/2];
+  if(iD&&mU&&rU&&pD)                return['bloodPond',(mid+rng)/2];
+  if(iU&&mD&&rD&&pU)                return['dragon',(idx+pnk)/2];
+  if(iD&&mD&&rU&&pU)                return['birdManipulation',(rng+pnk)/2];
+  if(iU&&mD&&rD&&pD&&tD)            return['red',idx];
+  if(iD&&mU&&rD&&pD)                return['cursedSpeech',mid];
+  if(iD&&mD&&rU&&pD)                return['strawDoll',rng];
+  if(tU&&iD&&mD&&rD&&pD)            return['limitless',th];
+  if(tU&&iU&&mD&&rD&&pD)            return['splitSoul',(th+idx)/2];
+  if(fi>0.38&&fi<0.70&&!tU)         return['void',fi];
+  if(th>0.26&&th<0.52&&iD&&mD&&rD&&pD) return['tenShadows',th];
+  if(iU&&mU&&rD&&pU&&tD)            return['gamble',(idx+mid+pnk)/3];
+  if(iU&&mU&&rD&&pD&&tD&&sp<1.0)   return['furnace',(idx+mid)/2];
+  const avgE=(idx+mid+rng+pnk)/4;
+  if(avgE>0.28&&avgE<0.56)          return['transfiguration',avgE];
+  if(iU&&mD&&rD&&pD&&lm[8].y>lm[0].y) return['invertedSpear',idx];
+  if(fi>0.50&&tU)                   return['gorilla',fi];
+  if(iD&&mD&&rD&&pD&&sp<0.9)       return['iceFormation',1-fi];
+  return['neutral',0.5];
+}
+
+// ── Voting ────────────────────────────────────────────────────────────────────
+const HIST=10,CONFIRM=5,RELEASE=14,history=[];
+let locked='neutral',lockCtr=0;
+
+// ── MediaPipe — pinned version, no reconnecting ───────────────────────────────
+const hands=new Hands({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${f}`});
+hands.setOptions({maxNumHands:1,modelComplexity:MCX,minDetectionConfidence:0.72,minTrackingConfidence:0.62,selfieMode:false});
+
+hands.onResults(res=>{
+  ocv.width=videoEl.videoWidth||CAM_W;ocv.height=videoEl.videoHeight||CAM_H;
+  ctx2d.clearRect(0,0,ocv.width,ocv.height);
+  let frameG='neutral',frameC=0.5;
+  if(res.multiHandLandmarks&&res.multiHandLandmarks.length>0){
+    const raw=res.multiHandLandmarks[0];
+    drawConnectors(ctx2d,raw,HAND_CONNECTIONS,{color:gColor+'cc',lineWidth:3.5});
+    drawLandmarks(ctx2d,raw,{color:'#ffffff',lineWidth:1,radius:2.5});
+    if(!smoothed)smoothed=raw.map(p=>({...p}));else smoothed=lerp3(smoothed,raw,ALPHA);
+    [frameG,frameC]=classify(smoothed);
+    pdotEl.style.background=gColor;pdotEl.style.boxShadow=`0 0 6px 2px ${gColor}88`;
+    ptxtEl.style.color=gColor+'ee';
+    ptxtEl.textContent=frameG==='neutral'?'NEUTRAL':frameG.replace(/([A-Z])/g,' $1').trim().toUpperCase();
+  } else {
+    smoothed=null;fb.forEach(el=>el.style.width='0%');
+    pdotEl.style.background='rgba(255,255,255,.18)';pdotEl.style.boxShadow='none';
+    ptxtEl.style.color='rgba(255,255,255,.18)';ptxtEl.textContent='NO HAND DETECTED';
+  }
+  history.push({g:frameG,c:frameC});if(history.length>HIST)history.shift();
+  const votes={};for(const{g,c}of history)votes[g]=(votes[g]||0)+c;
+  let winner='neutral',best=0;for(const[g,v]of Object.entries(votes))if(v>best){best=v;winner=g;}
+  if(winner===locked){lockCtr=Math.min(lockCtr+1,99);}else{lockCtr++;if(lockCtr>=(winner==='neutral'?RELEASE:CONFIRM)){locked=winner;lockCtr=0;}}
+  activateTech(locked);
+});
+
+const camUtil=new Camera(videoEl,{onFrame:async()=>{await hands.send({image:videoEl});},width:CAM_W,height:CAM_H});
+camUtil.start();
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+const FPS=tier===0?30:60,FMS=1000/FPS;
+let lastTs=0,time=0;
+function animate(ts){
+  requestAnimationFrame(animate);if(ts-lastTs<FMS*.85)return;lastTs=ts;time+=.016;
+  if(shakeAmt>.005){const s=shakeAmt*18;renderer.domElement.style.transform=`translate(${(R()-.5)*s}px,${(R()-.5)*s}px)`;shakeAmt*=.93;}
+  else{renderer.domElement.style.transform='';shakeAmt=0;}
+  for(let i=0;i<COUNT*3;i++){pos[i]+=(tPos[i]-pos[i])*LERP;col[i]+=(tCol[i]-col[i])*LERP;}
+  for(let i=0;i<COUNT;i++)sz[i]+=(tSz[i]-sz[i])*LERP;
+  geo.attributes.position.needsUpdate=true;geo.attributes.color.needsUpdate=true;geo.attributes.size.needsUpdate=true;
+  if(curTech!=='shrine'){const rs=ROT[curTech]||ROT.neutral;pts.rotation.x+=rs.x;pts.rotation.y+=rs.y;pts.rotation.z+=rs.z;}
+  const ap=ambi.geometry.attributes.position.array;
+  for(let i=0;i<AMBI*3;i+=3){ap[i]+=Math.sin(time*.32+i)*.016;ap[i+1]+=Math.cos(time*.26+i)*.012;}
+  ambi.geometry.attributes.position.needsUpdate=true;ambi.rotation.y+=.0004;
+  composer.render();
+}
+activateTech('neutral');animate(0);
+window.addEventListener('resize',()=>{cam3.aspect=innerWidth/innerHeight;cam3.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>
